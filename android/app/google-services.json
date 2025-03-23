@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "393057938292",
+    "project_id": "leaderboard-a7253",
+    "storage_bucket": "leaderboard-a7253.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:393057938292:android:518201cf1e2558dacc9a21",
+        "android_client_info": {
+          "package_name": "com.example.leaderboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "393057938292-2rq6bl5ofnstlirqut4n58t008u0uah8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8hUPDMtWHTvhjwCCmTsRVQJc3LLEuc90"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "393057938292-2rq6bl5ofnstlirqut4n58t008u0uah8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

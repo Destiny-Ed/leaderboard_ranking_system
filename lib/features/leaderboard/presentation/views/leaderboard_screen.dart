@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:leaderboard/core/config/constants.dart';
+import 'package:leaderboard/core/extensions.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -12,10 +13,9 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> filters = ["Today", "This Week", "All-time"];
 
   final Map<String, List<Map<String, dynamic>>> dummyData = {
-    "Today": [
+    "today": [
       {"username": "Alice", "score": 2500},
       {"username": "Bob", "score": 2800},
       {"username": "David", "score": 1700},
@@ -27,19 +27,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: filters.length, vsync: this);
+    _tabController = TabController(length: LeaderBoardFilter.values.length, vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: filters.length,
+      length: LeaderBoardFilter.values.length,
       child: Scaffold(
         appBar: AppBar(
           title: Text('Leaderboard', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
           bottom: TabBar(
             controller: _tabController,
-            tabs: filters.map((filter) => Tab(text: filter)).toList(),
+            tabs: LeaderBoardFilter.values.map((filter) => Tab(text: filter.name)).toList(),
             indicatorColor: Colors.blue,
             labelColor: Colors.blue,
             unselectedLabelColor: Colors.grey,
@@ -50,8 +50,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTicker
           child: TabBarView(
             controller: _tabController,
             children:
-                filters.map((filter) {
-                  return LeaderboardList(users: dummyData[filter] ?? []);
+                LeaderBoardFilter.values.map((filter) {
+                  return LeaderboardList(users: dummyData[filter.name] ?? []);
                 }).toList(),
           ),
         ),
