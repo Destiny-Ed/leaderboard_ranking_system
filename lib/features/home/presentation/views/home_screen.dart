@@ -1,5 +1,14 @@
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:leaderboard/core/config/enums.dart';
+import 'package:leaderboard/features/home/presentation/provider/home_provider.dart';
+import 'package:leaderboard/features/leaderboard/presentation/provider/leaderboard_provider.dart';
 import 'package:leaderboard/features/leaderboard/presentation/views/leaderboard_screen.dart';
+import 'package:leaderboard/features/onboarding/data/repository/auth_repository.dart';
+import 'package:leaderboard/features/onboarding/presentation/views/splash_screen.dart';
+import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -9,12 +18,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeProvider>().getScore();
   }
 
   @override
@@ -26,7 +33,20 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(title: Text("Hi, Destiny Ed")),
+      appBar: AppBar(
+        title: Text("Hi, ${FirebaseAuth.instance.currentUser?.displayName}"),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await AuthRepositoryImpl().logout();
+              if (context.mounted) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SplashScreen()));
+              }
+            },
+            icon: Icon(Icons.exit_to_app),
+          ),
+        ],
+      ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -47,19 +67,31 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text('Current Score'),
-            Text('$_counter', style: Theme.of(context).textTheme.headlineMedium),
+            Text('${context.watch<HomeProvider>().counter}', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.blue),
-                    foregroundColor: WidgetStateProperty.all(Colors.white),
-                  ),
+                Consumer<LeaderboardProvider>(
+                  builder: (context, leaderBoardState, child) {
+                    return ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(Colors.blue),
+                        foregroundColor: WidgetStateProperty.all(Colors.white),
+                      ),
 
-                  onPressed: () {},
-                  child: Text("Save New Score"),
+                      onPressed: () async {
+                        await leaderBoardState.updateScore(context.read<HomeProvider>().counter);
+
+                        if (leaderBoardState.viewState == ViewState.error) {
+                          log("Error occured while updating score");
+                          return;
+                        }
+                        log("score updated successfully");
+                      },
+                      child: Text(leaderBoardState.viewState == ViewState.busy ? "loading..." : "Save New Score"),
+                    );
+                  },
                 ),
                 ElevatedButton(
                   style: ButtonStyle(
@@ -77,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _incrementCounter,
+        onPressed: context.read<HomeProvider>().incrementCounter,
         tooltip: 'Increment',
         label: Text("Increment Score"),
       ), // This trailing comma makes auto-formatting nicer for build methods.

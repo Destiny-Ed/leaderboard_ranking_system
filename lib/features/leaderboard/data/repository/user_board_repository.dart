@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:leaderboard/core/extensions.dart';
+import 'package:leaderboard/core/config/enums.dart';
 
 abstract class UserBoardRepository {
   Future<bool> updateUserScore(int newScore);
   Stream<QuerySnapshot> getLeaderBoardData(LeaderBoardFilter filter);
+  Future<int> getUserScore();
 }
 
 class UserBoardRepositoryImpl implements UserBoardRepository {
@@ -40,5 +41,15 @@ class UserBoardRepositoryImpl implements UserBoardRepository {
       return true;
     }
     return false;
+  }
+
+  @override
+  Future<int> getUserScore() async {
+    final userDoc = await _leaderboardRef.where("userId", isEqualTo: _userId).get();
+    if (userDoc.docs.isNotEmpty) {
+      final score = userDoc.docs.first.get("score");
+      return score;
+    }
+    return 0;
   }
 }

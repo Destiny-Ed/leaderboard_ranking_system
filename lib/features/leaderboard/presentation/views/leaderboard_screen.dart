@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:leaderboard/core/config/constants.dart';
-import 'package:leaderboard/core/extensions.dart';
+import 'package:leaderboard/core/config/enums.dart';
+import 'package:leaderboard/core/config/extension.dart';
+import 'package:leaderboard/features/leaderboard/presentation/provider/leaderboard_provider.dart';
+import 'package:provider/provider.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -14,15 +18,15 @@ class LeaderboardScreen extends StatefulWidget {
 class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  final Map<String, List<Map<String, dynamic>>> dummyData = {
-    "today": [
-      {"username": "Alice", "score": 2500},
-      {"username": "Bob", "score": 2800},
-      {"username": "David", "score": 1700},
-      {"username": "Charlie", "score": 2600},
-      {"username": "Eve", "score": 1500},
-    ],
-  };
+  // final Map<String, List<Map<String, dynamic>>> dummyData = {
+  //   "today": [
+  //     {"username": "Alice", "score": 2500},
+  //     {"username": "Bob", "score": 2800},
+  //     {"username": "David", "score": 1700},
+  //     {"username": "Charlie", "score": 2600},
+  //     {"username": "Eve", "score": 1500},
+  //   ],
+  // };
 
   @override
   void initState() {
@@ -39,7 +43,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTicker
           title: Text('Leaderboard', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
           bottom: TabBar(
             controller: _tabController,
-            tabs: LeaderBoardFilter.values.map((filter) => Tab(text: filter.name)).toList(),
+            tabs: LeaderBoardFilter.values.map((filter) => Tab(text: filter.name.toUpperCase())).toList(),
             indicatorColor: Colors.blue,
             labelColor: Colors.blue,
             unselectedLabelColor: Colors.grey,
@@ -51,7 +55,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTicker
             controller: _tabController,
             children:
                 LeaderBoardFilter.values.map((filter) {
-                  return LeaderboardList(users: dummyData[filter.name] ?? []);
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: context.read<LeaderboardProvider>().getLeaderboardStream(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+
+                      final users = snapshot.data!.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+                      return LeaderboardList(users: users);
+                    },
+                  );
                 }).toList(),
           ),
         ),
@@ -75,6 +87,7 @@ class LeaderboardList extends StatelessWidget {
     final sortedUsers = List<Map<String, dynamic>>.from(users)..sort((a, b) => b['score'].compareTo(a['score']));
 
     final topUsers = sortedUsers.take(3).toList();
+
     final remainingUsers = sortedUsers.skip(3).toList();
 
     return Column(
@@ -107,8 +120,6 @@ class _PodiumTopThreeUsers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (topUsers.length < 3) return SizedBox.shrink();
-
     return FadeIn(
       duration: Duration(milliseconds: 500),
       child: Container(
@@ -118,16 +129,17 @@ class _PodiumTopThreeUsers extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
+          spacing: 10,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _TopUserPodium(
-              rank: 2,
-              username: topUsers[1]['username'],
-              score: topUsers[1]['score'],
-              imageUrl: avatar(topUsers[1]['username']),
-              height: 120,
-            ),
-            SizedBox(width: 10),
+            if (topUsers.length > 1)
+              _TopUserPodium(
+                rank: 2,
+                username: topUsers[1]['username'],
+                score: topUsers[1]['score'],
+                imageUrl: avatar(topUsers[1]['username']),
+                height: 120,
+              ), // Second place
             _TopUserPodium(
               rank: 1,
               username: topUsers[0]['username'],
@@ -136,16 +148,16 @@ class _PodiumTopThreeUsers extends StatelessWidget {
 
               height: 150,
               isChampion: true,
-            ),
-            SizedBox(width: 10),
-            _TopUserPodium(
-              rank: 3,
-              username: topUsers[2]['username'],
-              score: topUsers[2]['score'],
-              imageUrl: avatar(topUsers[2]['username']),
+            ), // First place (always exists)
+            if (topUsers.length > 2)
+              _TopUserPodium(
+                rank: 3,
+                username: topUsers[2]['username'],
+                score: topUsers[2]['score'],
+                imageUrl: avatar(topUsers[2]['username']),
 
-              height: 100,
-            ),
+                height: 100,
+              ), // Third place
           ],
         ),
       ),
@@ -199,7 +211,10 @@ class _TopUserPodium extends StatelessWidget {
           ),
         ),
         SizedBox(height: 8),
-        Text(username, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+        Text(
+          username.ellipsis(max: 10),
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         Text("Score: $score", style: TextStyle(color: Colors.white70)),
         SizedBox(height: 10),
         Container(

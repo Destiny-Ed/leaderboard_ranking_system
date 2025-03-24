@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:leaderboard/core/extensions.dart';
+import 'package:leaderboard/core/config/enums.dart';
 import 'package:leaderboard/features/leaderboard/data/repository/user_board_repository.dart';
 
 class LeaderboardProvider extends ChangeNotifier {
@@ -18,6 +18,8 @@ class LeaderboardProvider extends ChangeNotifier {
   }
 
   Future<void> updateScore(int newScore) async {
+    viewState = ViewState.busy;
+    notifyListeners();
     try {
       final result = await userBoardRepo.updateUserScore(newScore);
       viewState = (result ? ViewState.success : ViewState.error);

@@ -15,7 +15,7 @@ abstract class AuthRepository {
 class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
-    await FirebaseAuth.instance.currentUser?.delete();
+    await FirebaseAuth.instance.signOut();
     await GoogleSignIn().signOut();
     return;
   }

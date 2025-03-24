@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:leaderboard/core/extensions.dart';
+import 'package:leaderboard/core/config/enums.dart';
 import 'package:leaderboard/features/home/presentation/views/home_screen.dart';
 import 'package:leaderboard/features/onboarding/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';

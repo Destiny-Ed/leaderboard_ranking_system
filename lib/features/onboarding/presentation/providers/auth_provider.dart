@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:leaderboard/core/extensions.dart';
+import 'package:leaderboard/core/config/enums.dart';
 import 'package:leaderboard/features/onboarding/data/repository/auth_repository.dart';
 
 class AuthenticationProvider extends ChangeNotifier {
